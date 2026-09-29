@@ -1,3 +1,6 @@
 Flask
 pandas
-gunicorn
+openpyxl
+nltk
+textblob
+scikit-learn
