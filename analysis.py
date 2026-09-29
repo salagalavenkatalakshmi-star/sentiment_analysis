@@ -1,61 +1,37 @@
-print("================================")
-print("       REVIEW SENSE")
-print("   SENTIMENT ANALYSIS")
-print("================================")
+def analyze_sentiment(feedback):
+    if not feedback:
+        return "NEUTRAL", 0.0
 
-feedback = input("Enter your review: ").strip()
-text = feedback.lower()
+    text = str(feedback).lower().strip()
 
-# Negative phrases
-negative_phrases = [
-    "not good",
-    "not nice",
-    "not useful",
-    "not worth",
-    "not satisfied",
-    "very bad",
-    "worst",
-    "poor quality",
-    "terrible",
-    "disappointed",
-    "useless"
-]
+    negative_phrases = [
+        "not good", "not nice", "not useful", "not worth",
+        "not satisfied", "very bad", "worst", "poor quality",
+        "terrible", "disappointed", "useless", "bad", "poor",
+        "hate", "awful", "horrible", "waste", "boring"
+    ]
 
-# Positive phrases
-positive_phrases = [
-    "very good",
-    "really good",
-    "excellent",
-    "amazing",
-    "awesome",
-    "very nice",
-    "good quality",
-    "high quality",
-    "best",
-    "wonderful",
-    "satisfied"
-]
+    positive_phrases = [
+        "very good", "really good", "excellent", "amazing",
+        "awesome", "very nice", "good quality", "high quality",
+        "best", "wonderful", "satisfied", "good", "great",
+        "love", "perfect", "nice", "fantastic", "outstanding"
+    ]
 
-negative_count = 0
-positive_count = 0
+    negative_count = 0
+    positive_count = 0
 
-# Check negative phrases first
-for phrase in negative_phrases:
-    if phrase in text:
-        negative_count += 1
+    for phrase in negative_phrases:
+        if phrase in text:
+            negative_count += 1
 
-# Check positive phrases
-for phrase in positive_phrases:
-    if phrase in text:
-        positive_count += 1
+    for phrase in positive_phrases:
+        if phrase in text:
+            positive_count += 1
 
-print("\nYour Review:", feedback)
-
-if negative_count > positive_count:
-    print("Sentiment: NEGATIVE")
-elif positive_count > negative_count:
-    print("Sentiment: POSITIVE")
-else:
-    print("Sentiment: NEUTRAL")
-
-print("================================")
+    if negative_count > positive_count:
+        return "NEGATIVE", -0.6
+    elif positive_count > negative_count:
+        return "POSITIVE", 0.8
+    else:
+        return "NEUTRAL", 0.0
