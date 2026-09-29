@@ -1,0 +1,35 @@
+this peoduct service is good - POSITIVE
+product service is good - POSITIVE
+the service is wonderful - POSITIVE
+
+this product is to good - POSITIVE
+this product is to good - POSITIVE
+this product is very bad
+
+ - NEGATIVE
+this product is nice - NEUTRAL
+this product is good - POSITIVE
+this product is very bad - NEGATIVE
+this product is nice but quality is not good - POSITIVE
+this product is good but product is bad - NEUTRAL
+this product is nice but quality is not good - POSITIVE
+this product is good but not nice- POSITIVE
+this product is bad but quality is good- NEUTRAL
+this product is nice but quality is not good - POSITIVE
+this product is nice but quality is bad - NEGATIVE
+this product is some good - POSITIVE
+this item is so nice - NEUTRAL
+this product is so nice - NEUTRAL
+product is bad - NEGATIVE
+product is nice - NEUTRAL
+product is nice - POSITIVE
+product is bad and useless - NEGATIVE
+product is kk - NEUTRAL
+product is good but quality not good - POSITIVE
+product is nice - POSITIVE
+product is good - POSITIVE
+product is bad - NEGATIVE
+product is good but quality is not good - NEGATIVE
+product is not good but quality is good - NEGATIVE
+product good but quality is not good - MIXED
+product is not good but quality is good - NEGATIVE
