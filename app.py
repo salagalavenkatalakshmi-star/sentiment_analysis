@@ -1,58 +1,58 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session
 import pandas as pd
 import os
 from analysis import analyze_sentiment
 
 app = Flask(__name__)
+app.secret_key = "reviewsense_secret_123"
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-def get_review_col(df):
-    for c in df.columns:
-        if 'review' in c.lower() or 'text' in c.lower() or 'comment' in c.lower():
-            return c
+def get_review_column(df):
+    for col in df.columns:
+        if any(x in col.lower() for x in ['review','text','comment','feedback','message','content']):
+            return col
     return df.columns[0]
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-    results = None
-    error = None
+    return render_template('index.html', uploaded=False, analyzed=False)
 
-    if request.method == 'POST':
-        # 1. FILE UPLOAD - Mobile lo 100% work
-        file = request.files.get('file')
-        text_input = request.form.get('review_text', '').strip()
+@app.route('/upload', methods=['POST'])
+def upload():
+    file = request.files.get('dataset')
+    if not file:
+        return render_template('index.html', uploaded=False, analyzed=False)
+    filepath = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(filepath)
+    session['filepath'] = filepath
+    session['filename'] = file.filename
+    return render_template('index.html', uploaded=True, analyzed=False, filename=file.filename)
 
-        if file and file.filename!= '':
-            try:
-                filepath = os.path.join(UPLOAD_FOLDER, file.filename)
-                file.save(filepath)
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    filepath = session.get('filepath')
+    if not filepath or not os.path.exists(filepath):
+        return render_template('index.html', uploaded=False, analyzed=False)
+    if filepath.endswith(('.xlsx','.xls')):
+        df = pd.read_excel(filepath)
+    else:
+        df = pd.read_csv(filepath, encoding='utf-8', errors='ignore', on_bad_lines='skip')
 
-                if filepath.endswith('.xlsx') or filepath.endswith('.xls'):
-                    df = pd.read_excel(filepath)
-                else:
-                    df = pd.read_csv(filepath)
+    review_col = get_review_column(df)
+    reviews_data = []
+    pos=neg=neu=0
 
-                col = get_review_col(df)
-                # AUTOMATIC ANALYSIS
-                data = []
-                for _, row in df.iterrows():
-                    review = str(row[col])
-                    sentiment, score = analyze_sentiment(review)
-                    data.append({'review': review, 'Sentiment': sentiment, 'Score': score})
+    for i,row in df.iterrows():
+        text = str(row[review_col]).strip()
+        if not text or text.lower()=='nan': continue
+        sentiment,score = analyze_sentiment(text)
+        if sentiment.upper()=="POSITIVE": pos+=1
+        elif sentiment.upper()=="NEGATIVE": neg+=1
+        else: neu+=1
+        reviews_data.append({'number':len(reviews_data)+1,'review':text,'sentiment':sentiment.upper(),'customer':"",'app':""})
 
-                results = data
-
-            except Exception as e:
-                error = f"File Error: {e}. CSV lo first column lo reviews undali"
-
-        # 2. TEXT INPUT
-        elif text_input:
-            sentiment, score = analyze_sentiment(text_input)
-            results = [{'review': text_input, 'Sentiment': sentiment, 'Score': score}]
-
-    return render_template('index.html', results=results, error=error)
+    return render_template('index.html', uploaded=False, analyzed=True, reviews=reviews_data, total=len(reviews_data), positive=pos, negative=neg, neutral=neu)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
