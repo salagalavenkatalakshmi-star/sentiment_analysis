@@ -1,176 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ReviewSense - Smart Sentiment Analysis</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{min-height:100vh;font-family:"Segoe UI",Arial,sans-serif;overflow-x:hidden;background:radial-gradient(circle at 8% 15%,rgba(255,255,255,.55),transparent 25%),radial-gradient(circle at 92% 85%,rgba(255,255,255,.45),transparent 25%),linear-gradient(135deg,#ff3f9f 0%,#ff7fc0 35%,#8be6ac 70%,#25c976 100%);background-attachment:fixed;color:#173d2e;}
-.flower-side{position:fixed;top:5vh;width:145px;height:90vh;z-index:1;pointer-events:none;}
-.flower-left{left:-30px;}.flower-right{right:-30px;transform:scaleX(-1);}
-.stem{position:absolute;left:67px;bottom:0;width:13px;height:82%;background:linear-gradient(90deg,#116b3d,#6df0a1,#16834c);border-radius:20px;transform:rotate(4deg);box-shadow:5px 5px 15px rgba(0,0,0,.25);}
-.leaf{position:absolute;width:62px;height:30px;background:linear-gradient(135deg,#6af0a2,#0c753f);border-radius:100% 0 100% 0;box-shadow:4px 6px 12px rgba(0,0,0,.22);}
-.leaf.one{left:30px;bottom:35%;transform:rotate(-30deg);}.leaf.two{left:70px;bottom:50%;transform:rotate(35deg);}.leaf.three{left:30px;bottom:63%;transform:rotate(-25deg);}
-.flower{position:absolute;top:2%;left:30px;width:90px;height:90px;}
-.petal{position:absolute;width:45px;height:62px;background:linear-gradient(145deg,#ffd1ea,#ff3b9d);border-radius:50%;box-shadow:4px 6px 14px rgba(0,0,0,.25);}
-.p1{top:0;left:22px;}.p2{top:16px;left:0;transform:rotate(-70deg);}.p3{top:16px;right:0;transform:rotate(70deg);}.p4{bottom:0;left:22px;transform:rotate(180deg);}
-.center{position:absolute;width:30px;height:30px;top:30px;left:30px;border-radius:50%;background:radial-gradient(circle,#fff59b,#ffb300);box-shadow:0 0 20px rgba(255,210,50,.9);z-index:5;}
-.follower{position:fixed;right:32px;bottom:30px;width:78px;height:78px;border-radius:50%;background:radial-gradient(circle at 28% 22%,white 0 7%,transparent 8%),radial-gradient(circle at 35% 30%,#a6ffd0,#20c879 45%,#075d39 100%);box-shadow:inset -12px -13px 22px rgba(0,0,0,.28),inset 10px 10px 20px rgba(255,255,255,.5),0 15px 35px rgba(0,0,0,.3);z-index:50;animation:floating 3s ease-in-out infinite;}
-.follower::before{content:"";position:absolute;inset:10px;border:3px solid rgba(255,255,255,.7);border-radius:50%;}
-.follower::after{content:"✦";position:absolute;color:white;font-size:24px;left:27px;top:23px;}
-@keyframes floating{0%,100%{transform:translateY(0);}50%{transform:translateY(-15px) rotate(8deg);}}
-.page{position:relative;z-index:5;min-height:100vh;padding:45px 170px 60px;}
-.brand{text-align:center;margin-bottom:35px;}
-.brand h1{font-size:60px;font-weight:950;letter-spacing:3px;color:white;text-shadow:3px 3px 0 #e62c8b,6px 6px 0 rgba(0,0,0,.15),0 10px 25px rgba(0,0,0,.25);}
-.brand p{margin-top:8px;color:white;font-size:20px;font-weight:800;letter-spacing:2px;text-shadow:0 3px 8px rgba(0,0,0,.25);}
-.main-card{max-width:950px;margin:auto;padding:42px;border-radius:32px;background:rgba(255,255,255,.84);backdrop-filter:blur(15px);border:3px solid rgba(255,255,255,.75);box-shadow:0 25px 65px rgba(0,0,0,.22);}
-.main-card h2{text-align:center;color:#138c55;font-size:34px;font-weight:950;margin-bottom:12px;}
-.subtitle{text-align:center;color:#555;font-size:17px;margin-bottom:28px;}
-.upload-box{text-align:center;padding:40px;border-radius:25px;background:linear-gradient(135deg,rgba(255,65,160,.16),rgba(30,210,120,.18));border:2px dashed #ee429b;}
-input[type=file]{display:none;}
-.choose{display:inline-block;padding:16px 32px;border-radius:50px;color:white;font-size:18px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#ff3b9d,#ff72ba);box-shadow:0 10px 25px rgba(235,50,145,.3);transition:.3s;}
-.choose:hover{transform:translateY(-3px) scale(1.03);}
-.upload-btn,.analyze-btn{margin-top:22px;padding:16px 38px;border:none;border-radius:50px;color:white;font-size:18px;font-weight:900;cursor:pointer;background:linear-gradient(135deg,#159d61,#43db91);box-shadow:0 10px 25px rgba(20,150,85,.3);transition:.3s;}
-.upload-btn:hover,.analyze-btn:hover{transform:translateY(-3px) scale(1.03);}
-.success{text-align:center;padding:35px;border-radius:25px;background:linear-gradient(135deg,rgba(255,65,160,.18),rgba(45,210,125,.2));}
-.success-icon{font-size:58px;margin-bottom:10px;}
-.success h2{color:#148d57;font-size:32px;}
-.filename{margin-top:12px;color:#555;font-size:17px;font-weight:800;}
-.result-title{text-align:center;color:#138c55;font-size:38px;font-weight:950;margin-bottom:25px;}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:35px;}
-.stat{padding:22px 10px;text-align:center;border-radius:22px;background:rgba(255,255,255,.9);box-shadow:0 10px 25px rgba(0,0,0,.12);border-top:6px solid #ff4ba4;}
-.stat:nth-child(2){border-top-color:#25c878;}.stat:nth-child(3){border-top-color:#ef4b91;}.stat:nth-child(4){border-top-color:#e9b92e;}
-.stat-icon{font-size:28px;}.stat-number{font-size:32px;font-weight:950;color:#168e58;}.stat-label{margin-top:4px;font-size:14px;font-weight:900;color:#555;}
-.reviews-title{text-align:center;color:#e33b91;font-size:32px;font-weight:950;margin-bottom:22px;}
-.reviews-container{display:flex;flex-direction:column;gap:18px;}
-.review-card{padding:25px 27px;border-radius:23px;background:rgba(255,255,255,.95);box-shadow:0 10px 25px rgba(0,0,0,.13);border-left:8px solid #28c97a;transition:.25s;}
-.review-card:hover{transform:translateX(6px);box-shadow:0 15px 30px rgba(0,0,0,.17);}
-.review-number{color:#e83b94;font-size:21px;font-weight:950;margin-bottom:12px;}
-.customer-details{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
-.detail{padding:7px 14px;border-radius:30px;background:linear-gradient(135deg,#ffe0f0,#d8f8e5);color:#28624b;font-size:14px;font-weight:800;}
-.review-text{color:#333;font-size:19px;font-weight:650;line-height:1.6;margin-bottom:14px;}
-.sentiment{display:inline-block;padding:7px 17px;border-radius:30px;font-size:13px;font-weight:950;letter-spacing:1px;}
-.positive{background:#b9f4d1;color:#087540;}.negative{background:#ffc2dc;color:#ad1957;}.neutral{background:#fff0ae;color:#856600;}
-.feature-box{padding:18px;border-radius:18px;background:linear-gradient(135deg,#ffe0f0,#d8f8e5);text-align:center;}
-@media(max-width:900px){.page{padding:35px 90px;}.stats{grid-template-columns:repeat(2,1fr);}.flower-side{opacity:.5;}}
-@media(max-width:650px){.page{padding:25px 15px 40px;}.brand h1{font-size:42px;}.brand p{font-size:14px;}.main-card{padding:25px 17px;border-radius:25px;}.main-card h2{font-size:27px;}.result-title{font-size:30px;}.stats{grid-template-columns:repeat(2,1fr);gap:10px;}.stat{padding:17px 5px;}.stat-number{font-size:27px;}.review-text{font-size:17px;}.flower-side{opacity:.3;}.follower{width:58px;height:58px;right:12px;bottom:12px;}}
-</style>
-</head>
-<body>
-<div class="flower-side flower-left"><div class="flower"><div class="petal p1"></div><div class="petal p2"></div><div class="petal p3"></div><div class="petal p4"></div><div class="center"></div></div><div class="stem"></div><div class="leaf one"></div><div class="leaf two"></div><div class="leaf three"></div></div>
-<div class="flower-side flower-right"><div class="flower"><div class="petal p1"></div><div class="petal p2"></div><div class="petal p3"></div><div class="petal p4"></div><div class="center"></div></div><div class="stem"></div><div class="leaf one"></div><div class="leaf two"></div><div class="leaf three"></div></div>
-<div class="follower" id="follower"></div>
-<div class="page">
-<div class="brand"><h1>ReviewSense</h1><p>✨ Smart Review Sentiment Analysis ✨</p></div>
-
+<html><head><title>Review Sense</title><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font-family:Arial;background:#f0f2f5;padding:20px}.box{background:#fff;padding:25px;border-radius:12px;max-width:900px;margin:auto;box-shadow:0 4px 12px rgba(0,0,0,.1)} h1{text-align:center}.stats{display:flex;gap:10px;justify-content:center;margin:15px 0}.stat{padding:10px 15px;border-radius:8px;color:#fff}.pos{background:#28a745}.neg{background:#dc3545}.neu{background:#ffc107;color:#000} table{width:100%;border-collapse:collapse;margin-top:15px} th,td{border:1px solid #ddd;padding:8px;text-align:left} th{background:#5865f2;color:#fff} button{padding:10px 15px;background:#5865f2;color:#fff;border:none;border-radius:6px;cursor:pointer}</style></head>
+<body><div class="box">
+<h1>REVIEW SENSE</h1><p style="text-align:center">SENTIMENT ANALYSIS</p>
 {% if not uploaded and not analyzed %}
-<div class="main-card" id="welcomeCard">
-    <div style="text-align:center;">
-        <div style="font-size:75px; margin-bottom:10px;">🌸💚🚀</div>
-        <h2 style="font-size:42px;">Welcome to ReviewSense</h2>
-        <p class="subtitle" style="margin-top:15px; font-size:18px; line-height:1.7;">
-            Transform your customer feedback into powerful insights.<br>
-            Our AI analyzes thousands of reviews in seconds!
-        </p>
-        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:25px 0;">
-            <div class="feature-box"><div style="font-size:32px;">🤖</div><div style="font-weight:900; margin-top:6px; color:#138c55;">AI Powered</div><div style="font-size:13px; color:#666; margin-top:4px;">Advanced Sentiment Detection</div></div>
-            <div class="feature-box"><div style="font-size:32px;">📊</div><div style="font-weight:900; margin-top:6px; color:#138c55;">Visual Insights</div><div style="font-size:13px; color:#666; margin-top:4px;">Positive / Negative / Neutral</div></div>
-            <div class="feature-box"><div style="font-size:32px;">⚡</div><div style="font-weight:900; margin-top:6px; color:#138c55;">Lightning Fast</div><div style="font-size:13px; color:#666; margin-top:4px;">Analyze in Seconds</div></div>
-        </div>
-        <button onclick="showUpload()" class="upload-btn" style="font-size:21px; padding:18px 50px;">🚀 Get Started - Analyze Now</button>
-        <p style="margin-top:14px; color:#777; font-size:13px;">Supports CSV, XLSX, XLS, TXT • No Login Required</p>
-    </div>
-</div>
-
-<div class="main-card" id="uploadCard" style="display:none;">
-    <h2>📂 Open Your Dataset</h2>
-    <p class="subtitle">Upload your customer review dataset and discover its sentiment.</p>
-    <div class="upload-box">
-        <form action="/upload" method="POST" enctype="multipart/form-data">
-            <label for="dataset" class="choose">📁 Choose Dataset</label>
-            <input type="file" id="dataset" name="dataset" accept=".csv,.xlsx,.xls,.txt" required>
-            <p id="fileName" style="margin-top:15px; font-weight:800; color:#138c55; font-size:16px;"></p>
-            <br>
-            <button type="submit" class="upload-btn">Upload Dataset ✨</button>
-            <br><br>
-            <button type="button" onclick="showWelcome()" style="background:none; border:none; color:#e62c8b; font-weight:800; cursor:pointer; font-size:15px;">← Back to Home</button>
-        </form>
-    </div>
-</div>
+<form action="/upload" method="post" enctype="multipart/form-data">
+<input type="file" name="dataset" accept=".csv,.xlsx,.xls" required>
+<button type="submit">Upload Dataset</button>
+</form>
 {% endif %}
-
-{% if uploaded and not analyzed %}
-<div class="main-card">
-    <div class="success">
-        <div class="success-icon">🌸✨</div>
-        <h2>Dataset Uploaded Successfully!</h2>
-        <p class="filename">📄 {{ filename }}</p>
-        <form action="/analyze" method="POST">
-            <button type="submit" class="analyze-btn">🔍 Analyze Dataset</button>
-        </form>
-    </div>
-</div>
+{% if uploaded %}
+<p>File Uploaded: <b>{{filename}}</b></p>
+<form action="/analyze" method="post"><button type="submit">Analyze Now</button></form>
 {% endif %}
-
 {% if analyzed %}
-<div class="main-card">
-    <h2 class="result-title">💚 Review Analysis 💗</h2>
-    <div class="stats">
-        <div class="stat"><div class="stat-icon">📝</div><div class="stat-number">{{ total }}</div><div class="stat-label">TOTAL REVIEWS</div></div>
-        <div class="stat"><div class="stat-icon">💚</div><div class="stat-number">{{ positive }}</div><div class="stat-label">POSITIVE</div></div>
-        <div class="stat"><div class="stat-icon">💗</div><div class="stat-number">{{ negative }}</div><div class="stat-label">NEGATIVE</div></div>
-        <div class="stat"><div class="stat-icon">💛</div><div class="stat-number">{{ neutral }}</div><div class="stat-label">NEUTRAL</div></div>
-    </div>
-    <h2 class="reviews-title">📝✨ Customer Reviews ✨📝</h2>
-    <div class="reviews-container">
-        {% for item in reviews %}
-        <div class="review-card">
-            <div class="review-number">🌸 Review #{{ item.number }}</div>
-            {% if item.customer or item.app %}
-            <div class="customer-details">
-                {% if item.customer %}<div class="detail">👤 Customer: {{ item.customer }}</div>{% endif %}
-                {% if item.app %}<div class="detail">📱 App: {{ item.app }}</div>{% endif %}
-            </div>
-            {% endif %}
-            <div class="review-text">💬 {{ item.review }}</div>
-            {% if item.sentiment == "POSITIVE" %}<span class="sentiment positive">💚 POSITIVE</span>
-            {% elif item.sentiment == "NEGATIVE" %}<span class="sentiment negative">💗 NEGATIVE</span>
-            {% else %}<span class="sentiment neutral">💛 NEUTRAL</span>{% endif %}
-        </div>
-        {% endfor %}
-    </div>
-    <div style="text-align:center; margin-top:30px;">
-        <a href="/" style="display:inline-block; padding:14px 35px; border-radius:50px; background:linear-gradient(135deg,#ff3b9d,#ff72ba); color:white; font-weight:900; text-decoration:none;">🔄 Analyze New Dataset</a>
-    </div>
-</div>
+<div class="stats"><div class="stat pos">Positive: {{positive}}</div><div class="stat neg">Negative: {{negative}}</div><div class="stat neu">Neutral: {{neutral}}</div><div class="stat" style="background:#333">Total: {{total}}</div></div>
+<table><tr><th>#</th><th>Review</th><th>Sentiment</th></tr>
+{% for r in reviews %}<tr><td>{{r.number}}</td><td>{{r.review}}</td><td><b>{{r.sentiment}}</b></td></tr>{% endfor %}
+</table><br><a href="/"><button>Upload New</button></a>
 {% endif %}
-</div>
-<script>
-const follower = document.getElementById("follower");
-document.addEventListener("mousemove", function(e){
-    const x = (e.clientX / window.innerWidth -.5) * 20;
-    const y = (e.clientY / window.innerHeight -.5) * 20;
-    follower.style.marginLeft = x + "px";
-    follower.style.marginTop = y + "px";
-});
-function showUpload(){
-    document.getElementById('welcomeCard').style.display='none';
-    document.getElementById('uploadCard').style.display='block';
-}
-function showWelcome(){
-    document.getElementById('uploadCard').style.display='none';
-    document.getElementById('welcomeCard').style.display='block';
-}
-const input = document.getElementById("dataset");
-const fileName = document.getElementById("fileName");
-if(input){
-  input.addEventListener("change", function(){
-    if(this.files[0]){
-      fileName.innerText = "📄 Selected: " + this.files[0].name + " ✅ Ready!";
-    }
-  });
-}
-</script>
-</body>
-</html>
+</div></body></html>
