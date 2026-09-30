@@ -2,3 +2,5 @@ Flask
 pandas
 openpyxl
 gunicorn
+PyMuPDF
+PyPDF2
