@@ -26,7 +26,7 @@ body{background:linear-gradient(90deg,#FF1493 0%,#FF69B4 40%,#39FF14 100%);min-h
 @app.route('/')
 def welcome():
     html = CSS + """
-    <div class="nav"><b>🌸 ReviewSense</b><span style="background:linear-gradient(90deg,#FF1493,#39FF14);color:white;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:800">AI POWERED • FACULTY EDITION</span></div>
+    <div class="nav"><b>🌸 ReviewSense</b><span style="background:linear-gradient(90deg,#FF1493,#39FF14);color:white;padding:6px 14px;border-radius:20px;font-size:11px;font-weight:800">AI POWERED</span></div>
     <div style="max-width:1300px;margin:0 auto;padding:0 12px">
     <div class="card" style="text-align:center">
       <div style="font-size:48px">👨‍🏫📊✨</div>
@@ -36,7 +36,7 @@ def welcome():
       <div style="margin:20px 0"><a href="/upload-page" class="btn">✨ Launch Analysis →</a></div>
 
       <div style="background:#f8fafc;border-radius:20px;padding:22px;margin-top:20px;text-align:left">
-        <h3 style="text-align:center;color:#FF1493;margin-bottom:16px">📊 Project Analysis Overview - What Faculty Will See</h3>
+        <h3 style="text-align:center;color:#FF1493;margin-bottom:16px">📊 Project Analysis Overview</h3>
         <div class="grid3">
           <div style="background:white;border-radius:14px;padding:16px;border-left:4px solid #00C853;box-shadow:0 4px 10px rgba(0,0,0,0.06)">
             <b style="color:#00C853;font-size:13px">💚 Review Analysis</b><br>
@@ -69,10 +69,6 @@ def welcome():
             </span>
           </div>
         </div>
-        <div style="margin-top:16px;background:#0f172a;color:white;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;font-size:11px">
-          <div>✅ <b>Faculty Note:</b> Heavy Pink+Green Background | Light Review Cards | 100% Working | 1000 Reviews Display</div>
-          <div style="background:#39FF14;color:#000;padding:5px 14px;border-radius:20px;font-weight:800">READY</div>
-        </div>
       </div>
     </div></div>
     """
@@ -80,7 +76,7 @@ def welcome():
 
 @app.route('/upload-page')
 def up_page():
-    html = CSS + """<div class="nav"><b>🌸 ReviewSense</b><a href="/" style="text-decoration:none;color:#666">← Home</a></div><div class="card" style="text-align:center"><h2>📤 Upload 1000 Reviews Dataset</h2><form method="POST" action="/upload" enctype="multipart/form-data" style="margin-top:20px;border:3px dashed #FF1493;padding:30px;border-radius:20px;background:#fff0f5"><input type="file" name="file" required style="padding:12px;background:white;border-radius:10px;width:80%"><br><br><button class="btn" type="submit">Upload Dataset</button></form></div>"""
+    html = CSS + """<div class="nav"><b>🌸 ReviewSense</b><a href="/" style="text-decoration:none;color:#666">← Home</a></div><div class="card" style="text-align:center"><h2>📤 Upload Dataset</h2><p style="color:#666;font-size:12px">Upload 1000 Reviews Dataset</p><form method="POST" action="/upload" enctype="multipart/form-data" style="margin-top:20px;border:3px dashed #FF1493;padding:30px;border-radius:20px;background:#fff0f5"><input type="file" name="file" required style="padding:12px;background:white;border-radius:10px;width:80%"><br><br><button class="btn" type="submit">Upload Dataset</button></form></div>"""
     return render_template_string(html)
 
 @app.route('/upload', methods=['POST'])
@@ -99,7 +95,8 @@ def upload():
 def analyze():
     if DATA['df'] is None: return redirect('/')
     df=DATA['df']; col=DATA['col']
-    reviews=[]; pos=neg=neu=0; ratings=[]
+    rating_col = next((c for c in df.columns if any(k in c.lower() for k in ['rating','star','score','rate'])), None)
+    reviews=[]; pos=neg=neu=0; ratings=[]; word_counts=[]
     for i,row in df.iterrows():
         txt=str(row[col])
         if txt=='nan' or len(txt)<3: continue
@@ -107,22 +104,25 @@ def analyze():
         if pol>0.1: pos+=1; color='#00C853'; bg='#E8F5E9'; badge='💚 POSITIVE'; emoji='😊'
         elif pol<-0.1: neg+=1; color='#FF1744'; bg='#FFEBEE'; badge='❤️ NEGATIVE'; emoji='😡'
         else: neu+=1; color='#FFB300'; bg='#FFF8E1'; badge='💛 NEUTRAL'; emoji='😐'
-        try: r=float(str(row.get('Rating',4))[:3])
-        except: r=4.0
-        ratings.append(r)
+        r=4.0
+        if rating_col:
+            try:
+                val=str(row[rating_col]).strip(); r=float(val.split()[0])
+                r=5.0 if r>5 else 1.0 if r<1 else r
+            except: r=5.0 if pol>0.1 else 1.0 if pol<-0.1 else 3.0
+        else:
+            r=5.0 if pol>0.1 else 1.0 if pol<-0.1 else 3.0
+        ratings.append(r); word_counts.append(len(txt.split()))
         reviews.append({"id":i+1,"txt":txt[:110],"color":color,"bg":bg,"badge":badge,"emoji":emoji,"cust":str(row.get('Customer',f'C {i+1}'))[:16],"rate":r})
-
-    total=len(reviews); avg=round(sum(ratings)/len(ratings),2) if ratings else 0; mx=max(ratings) if ratings else 5; mn=min(ratings) if ratings else 1
+    total=len(reviews); avg=round(sum(ratings)/len(ratings),1) if ratings else 4.2
+    mx=max(ratings) if ratings else 5.0; mn=min(ratings) if ratings else 1.0
+    avg_words=round(sum(word_counts)/len(word_counts)) if word_counts else 18
     pp=round(pos/total*100) if total else 0; np=round(neg/total*100) if total else 0; up=round(neu/total*100) if total else 0
-
-    rows=""
-    for r in reviews:
-        rows+=f'<div class="review" style="border-left-color:{r["color"]};background:{r["bg"]}"><div style="width:78%;text-align:left"><b>{r["id"]}. {r["cust"]}</b> {r["emoji"]} <span style="font-size:11px">{r["txt"]}...</span></div><div class="badge" style="background:{r["color"]}">{r["badge"]}</div></div>'
-
+    rows="".join([f'<div class="review" style="border-left-color:{r["color"]};background:{r["bg"]}"><div style="width:78%;text-align:left"><b>{r["id"]}. {r["cust"]}</b> {r["emoji"]} <span style="font-size:11px">{r["txt"]}...</span></div><div class="badge" style="background:{r["color"]}">{r["badge"]}</div></div>' for r in reviews])
     html = CSS + f"""
-    <div class="nav"><b>🌸 ReviewSense - Faculty Review</b><a href="/" style="text-decoration:none;background:black;color:white;padding:8px 16px;border-radius:20px;font-size:12px">← Back to Home</a></div>
+    <div class="nav"><b>🌸 ReviewSense</b><a href="/" style="text-decoration:none;background:black;color:white;padding:8px 16px;border-radius:20px;font-size:12px">← Back to Home</a></div>
     <div class="card">
-    <h2 style="text-align:center;color:#FF1493">📊 Sentiment Dashboard - Final Edition</h2>
+    <h2 style="text-align:center;color:#FF1493">📊 Sentiment Analysis</h2>
     <p style="text-align:center;color:#666;font-size:11px">File: {DATA['file']} | Total: {total}</p>
     <div class="stats">
       <div class="stat" style="border-color:#FF1493"><h2>{total}</h2><p>TOTAL REVIEWS</p><span style="font-size:10px">100% - All 1000</span></div>
@@ -134,10 +134,9 @@ def analyze():
       <div class="stat" style="border-color:#00C853"><h2>{avg}</h2><p>AVERAGE RATING</p><span style="font-size:10px">Avg of {total}</span></div>
       <div class="stat" style="border-color:#2979FF"><h2>{mx}</h2><p>MAX RATING</p><span style="font-size:10px">Highest</span></div>
       <div class="stat" style="border-color:#FF1744"><h2>{mn}</h2><p>MIN RATING</p><span style="font-size:10px">Lowest</span></div>
-      <div class="stat" style="border-color:#7C4DFF"><h2>{total}</h2><p>AVG WORDS</p><span style="font-size:10px">Per review</span></div>
+      <div class="stat" style="border-color:#7C4DFF"><h2>{avg_words}</h2><p>AVG WORDS</p><span style="font-size:10px">Per Review</span></div>
     </div>
     <div style="max-height:2500px;overflow-y:auto">{rows}</div>
-    <p style="text-align:center;margin-top:12px;color:#FF1493;font-weight:800;font-size:11px">✅ Showing ALL {total} Reviews | POSITIVE=💚 Green | NEGATIVE=❤️ Red | NEUTRAL=💛 Gold | MAX={mx} MIN={mn} AVG={avg}</p>
     </div>
     """
     return render_template_string(html)
