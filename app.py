@@ -23,9 +23,9 @@ body{background:linear-gradient(90deg,#FF1493 0%,#FF69B4 40%,#39FF14 100%);min-h
 """
 
 def simple_sentiment(t):
-    t = t.lower()
-    pos = ['love','great','excellent','amazing','good','best','awesome','perfect','nice','wonderful']
-    neg = ['bad','worst','terrible','awful','hate','poor','horrible','disappoint','waste']
+    t = str(t).lower()
+    pos = ['love','great','excellent','amazing','good','best','awesome','perfect','nice','wonderful','happy','super']
+    neg = ['bad','worst','terrible','awful','hate','poor','horrible','disappoint','waste','boring','pathetic']
     p = sum(1 for w in pos if w in t)
     n = sum(1 for w in neg if w in t)
     return 1 if p>n else -1 if n>p else 0
@@ -71,17 +71,28 @@ def upload():
         if not f: return redirect('/upload-page')
         path = os.path.join('uploads', f.filename)
         f.save(path)
+
+        df = None
+        # FIX FOR BUFFER OVERFLOW - USE PYTHON ENGINE
         try:
-            if path.endswith('.csv'):
-                df = pd.read_csv(path, encoding='utf-8', errors='ignore', on_bad_lines='skip')
-            else:
-                df = pd.read_excel(path)
+            df = pd.read_csv(path, engine='python', encoding='utf-8', errors='ignore', on_bad_lines='skip')
         except:
-            df = pd.read_csv(path, encoding='latin1', on_bad_lines='skip')
-        col = next((c for c in df.columns if 'review' in c.lower() or 'text' in c.lower()), df.columns[0])
+            try:
+                df = pd.read_csv(path, engine='python', encoding='latin1', on_bad_lines='skip')
+            except:
+                try:
+                    df = pd.read_excel(path)
+                except Exception as e:
+                    return f"<h3>File Error: {e}</h3><a href='/upload-page'>Try again</a>"
+
+        if df is None or len(df)==0:
+            return "<h3>Empty file!</h3><a href='/upload-page'>Try again</a>"
+
+        col = next((c for c in df.columns if 'review' in c.lower() or 'text' in c.lower() or 'comment' in c.lower()), df.columns[0])
         DATA["df"] = df.head(1000)
         DATA["col"] = col
         DATA["file"] = f.filename
+
         return render_template_string(CSS + f"""
         <div class="nav"><b>🌸 ReviewSense</b></div>
         <div class="card" style="text-align:center"><h1>✅ Upload Success</h1><p>{f.filename} - {len(df.head(1000))} reviews</p><br><a href="/analyze" class="btn">Analyze Now →</a></div>
@@ -132,12 +143,9 @@ def analyze():
         return redirect('/')
 
 @app.errorhandler(500)
-def handle_500(e):
-    return redirect('/')
-
+def handle_500(e): return redirect('/')
 @app.errorhandler(404)
-def handle_404(e):
-    return redirect('/')
+def handle_404(e): return redirect('/')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000)
