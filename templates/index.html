@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Customer Feedback Analysis</title>
 
 <style>
@@ -16,73 +17,82 @@
 
 body {
     min-height: 100vh;
-    padding: 20px;
+    padding: 18px;
     background: linear-gradient(120deg, #ff1493, #ff85c1, #8be6ac, #25c976);
     background-attachment: fixed;
 }
 
 .nav {
+    max-width: 1150px;
+    margin: 0 auto 22px;
+    padding: 18px 24px;
     background: white;
-    padding: 16px 24px;
-    border-radius: 18px;
-    max-width: 1100px;
-    margin: 0 auto 20px;
+    border-radius: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 5px 18px #0002;
+    gap: 12px;
+    box-shadow: 0 8px 25px #0002;
     color: #e91e8c;
-    font-size: 19px;
     font-weight: bold;
+    font-size: 19px;
 }
 
 .tag {
-    background: linear-gradient(90deg, #ff1493, #25c976);
+    background: linear-gradient(90deg, #ff1493, #20bf6b);
     color: white;
-    padding: 7px 12px;
-    border-radius: 20px;
-    font-size: 11px;
+    padding: 9px 14px;
+    border-radius: 25px;
+    font-size: 12px;
+    white-space: nowrap;
 }
 
 .box {
-    background: rgba(255,255,255,0.97);
-    padding: 28px;
-    border-radius: 25px;
-    max-width: 1100px;
+    max-width: 1150px;
     margin: auto;
+    padding: 30px;
+    background: rgba(255,255,255,.97);
+    border-radius: 26px;
     box-shadow: 0 12px 35px #0002;
 }
 
 h1 {
     text-align: center;
     color: #e91e8c;
-    font-size: clamp(25px, 5vw, 38px);
-    margin: 12px 0;
+    font-size: clamp(27px, 5vw, 40px);
+    margin: 12px 0 16px;
 }
 
 .subtitle {
     text-align: center;
     color: #555;
-    margin-bottom: 20px;
-    line-height: 1.6;
+    font-size: 16px;
+    line-height: 1.8;
+    margin-bottom: 25px;
 }
 
 .upload-area {
-    background: #fff0f7;
-    border: 2px dashed #ff1493;
-    border-radius: 18px;
-    padding: 30px 15px;
+    background: linear-gradient(135deg, #fff0f7, #e8fff0);
+    border: 3px dashed #ff1493;
+    border-radius: 22px;
+    padding: 38px 18px;
     text-align: center;
-    margin: 20px 0;
+    margin: 25px 0;
 }
 
-input[type="file"] {
+.upload-area h3 {
+    color: #e91e8c;
+    font-size: 24px;
+    margin-bottom: 14px;
+}
+
+input[type=file] {
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     padding: 12px;
     background: white;
-    border-radius: 10px;
-    margin-bottom: 18px;
+    border-radius: 12px;
+    margin: 15px 0;
     border: 1px solid #ddd;
 }
 
@@ -90,49 +100,55 @@ input[type="file"] {
     display: inline-block;
     background: linear-gradient(90deg, #ff1493, #20bf6b);
     color: white;
-    padding: 13px 23px;
+    padding: 14px 23px;
     border: none;
-    border-radius: 25px;
+    border-radius: 28px;
     font-weight: bold;
+    font-size: 15px;
     cursor: pointer;
     text-decoration: none;
-    margin: 5px;
-    transition: transform .2s;
+    margin: 6px;
+    transition: transform .25s, box-shadow .25s;
 }
 
 .btn:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 7px 18px #e91e8c35;
 }
 
 .success {
-    padding: 15px;
+    padding: 18px;
     background: #e8f8ee;
-    border-radius: 12px;
+    border: 2px solid #20bf6b;
+    border-radius: 15px;
     color: #16763b;
-    margin: 15px 0;
+    margin: 20px 0;
     overflow-wrap: anywhere;
 }
 
 .stats {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-    margin: 22px 0;
+    gap: 15px;
+    margin: 28px 0;
 }
 
 .stat {
-    padding: 20px 8px;
-    border-radius: 15px;
+    padding: 23px 10px;
+    border-radius: 18px;
     text-align: center;
-    color: #333;
-    background: white;
-    box-shadow: 0 4px 12px #0001;
-    border-top: 5px solid #ff1493;
+    box-shadow: 0 6px 18px #0001;
+    border-top: 6px solid;
+    transition: transform .25s;
+}
+
+.stat:hover {
+    transform: translateY(-5px);
 }
 
 .stat h2 {
-    font-size: 28px;
-    margin-bottom: 8px;
+    font-size: 32px;
+    margin-bottom: 10px;
 }
 
 .stat p {
@@ -140,89 +156,182 @@ input[type="file"] {
     font-weight: bold;
 }
 
+.total {
+    background: #f4efff;
+    border-color: #8b5cf6;
+    color: #6941c6;
+}
+
 .pos {
-    border-color: #20bf6b;
     background: #e9fff1;
+    border-color: #20bf6b;
+    color: #168844;
 }
 
 .neg {
-    border-color: #ff3547;
     background: #fff0f1;
+    border-color: #ff3547;
+    color: #e32636;
 }
 
 .neu {
-    border-color: #ffb300;
     background: #fff9e5;
+    border-color: #ffb300;
+    color: #a87500;
 }
 
-.total {
-    border-color: #8b5cf6;
-    background: #f4efff;
+/* Feedback heading */
+.section-title {
+    color: #e91e8c;
+    font-size: clamp(23px, 4vw, 30px);
+    font-weight: 800;
+    text-align: center;
+    margin: 32px 0 22px;
+    padding: 17px 10px;
+    background: linear-gradient(100deg, #ffe0f0, #dcffe9);
+    border-radius: 18px;
+    border: 2px solid #ff8bc5;
+    box-shadow: 0 5px 18px #e91e8c20;
 }
 
-.table-wrap {
-    width: 100%;
-    overflow-x: auto;
-    margin-top: 15px;
-    border-radius: 12px;
+/* Feedback cards */
+.feedback-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
 }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    min-width: 480px;
-}
-
-th, td {
-    border: 1px solid #eee;
-    padding: 12px;
-    text-align: left;
+.feedback-card {
+    padding: 23px;
+    border-radius: 20px;
+    border: 2px solid #ffd0e7;
+    border-left: 8px solid #ff1493;
+    background: linear-gradient(135deg, #ffffff, #fff0f8);
+    box-shadow: 0 8px 22px #00000012;
+    transition: transform .25s, box-shadow .25s;
     overflow-wrap: anywhere;
 }
 
-th {
+.feedback-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 13px 28px #e91e8c30;
+}
+
+.feedback-number {
+    display: inline-block;
     background: linear-gradient(90deg, #ff1493, #20bf6b);
     color: white;
+    padding: 9px 15px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 18px;
 }
 
-tr:nth-child(even) {
-    background: #fff5fa;
+.feedback-text {
+    color: #29223a;
+    font-size: 18px;
+    line-height: 1.9;
+    font-weight: 600;
+    margin-bottom: 20px;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
-.section-title {
-    color: #e91e8c;
-    margin-top: 22px;
+.feedback-emoji {
+    font-size: 25px;
+    margin-right: 7px;
+}
+
+.feedback-label {
+    display: inline-block;
+    padding: 11px 16px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.feedback-positive {
+    border-color: #b5edc8;
+    border-left-color: #18a957;
+    background: linear-gradient(135deg, #ffffff, #e3ffed);
+}
+
+.feedback-positive .feedback-label {
+    background: #c8f7d8;
+    color: #08752f;
+}
+
+.feedback-negative {
+    border-color: #ffc6cc;
+    border-left-color: #f02d48;
+    background: linear-gradient(135deg, #ffffff, #fff0f1);
+}
+
+.feedback-negative .feedback-label {
+    background: #ffdadd;
+    color: #c4162b;
+}
+
+.feedback-neutral {
+    border-color: #ffe3a0;
+    border-left-color: #f0a800;
+    background: linear-gradient(135deg, #ffffff, #fff8dc);
+}
+
+.feedback-neutral .feedback-label {
+    background: #ffedb0;
+    color: #8b6500;
+}
+
+.back-area {
+    text-align: center;
+    margin: 30px 0 5px;
 }
 
 .footer {
     text-align: center;
-    font-size: 12px;
+    font-size: 13px;
     color: #777;
-    margin-top: 25px;
+    margin-top: 28px;
+    line-height: 1.8;
 }
 
-@media(max-width: 650px) {
+@media(max-width: 700px) {
     body {
         padding: 10px;
     }
 
     .box {
-        padding: 18px 12px;
-        border-radius: 18px;
+        padding: 20px 13px;
+        border-radius: 20px;
     }
 
     .nav {
         padding: 14px;
-        font-size: 15px;
+        font-size: 14px;
     }
 
     .stats {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
     }
 
     .stat h2 {
-        font-size: 23px;
+        font-size: 25px;
+    }
+
+    .feedback-list {
+        grid-template-columns: 1fr;
+    }
+
+    .feedback-card {
+        padding: 19px;
+    }
+
+    .feedback-text {
+        font-size: 17px;
     }
 }
 </style>
@@ -232,70 +341,71 @@ tr:nth-child(even) {
 
 <div class="nav">
     <span>🌸 Customer Feedback Analysis</span>
-    <span class="tag">AI POWERED</span>
+    <span class="tag">✨ AI POWERED</span>
 </div>
 
 <div class="box">
 
 {% if not uploaded and not analyzed %}
 
-<h1>WELCOME</h1>
+<h1>🌸 Welcome to Customer Feedback Analysis 🌸</h1>
+
 <p class="subtitle">
-    <b>Customer Feedback Analysis System</b><br>
-    Understand Customer Opinions Through Sentiment Analysis
+    <b>Understand Customer Opinions Through Sentiment Analysis</b><br>
+    Discover positive, negative and neutral feedback from your dataset.
 </p>
 
 <div class="upload-area">
-    <h3 style="color:#e91e8c;margin-bottom:12px;">
-        📂 Upload Your Dataset
-    </h3>
-    <p style="color:#666;margin-bottom:18px;">
-        Select a CSV or Excel file containing customer reviews.
+    <h3>💖 Analyze Customer Feedback 💖</h3>
+
+    <p style="color:#666;line-height:1.8;">
+        Upload your customer review dataset and discover what customers think.
     </p>
 
-    <form action="/upload" method="post"
-          enctype="multipart/form-data">
-        <input type="file" name="dataset"
-               accept=".csv,.xlsx,.xls" required>
-        <br>
-        <button class="btn" type="submit">
-            📤 Upload Dataset
-        </button>
-    </form>
+    <a href="/upload-page" class="btn">🚀 Start Analysis</a>
 </div>
 
 {% endif %}
+
 
 {% if uploaded and not analyzed %}
 
-<h1>✅ Dataset Uploaded</h1>
-<p class="subtitle">Your dataset is ready for analysis.</p>
+<h1>🎉 Dataset Uploaded Successfully! 🎉</h1>
+
+<p class="subtitle">
+    Your dataset is ready. Click below to view your feedback analysis.
+</p>
 
 <div class="success">
-    <b>File:</b> {{ filename }}
+    <b>📁 Uploaded File:</b> {{ filename }}
 </div>
 
-<div style="text-align:center;">
+<div style="text-align:center">
     <form action="/analyze" method="post">
-        <button class="btn" type="submit">
-            📊 Analyze Feedback
-        </button>
+        <button class="btn" type="submit">📊 Analyze Feedback</button>
     </form>
+</div>
+
+<div class="back-area">
+    <a href="/" class="btn">🏠 Back to Welcome</a>
 </div>
 
 {% endif %}
 
+
 {% if analyzed %}
 
-<h1>📊 Customer Feedback Analysis</h1>
+<h1>💖 Customer Feedback Analysis 💖</h1>
+
 <p class="subtitle">
-    Sentiment analysis results of your uploaded dataset
+    Your Customer Sentiment Results at a Glance ✨
 </p>
 
 <div class="stats">
+
     <div class="stat total">
         <h2>{{ total }}</h2>
-        <p>TOTAL REVIEWS</p>
+        <p>📊 TOTAL REVIEWS</p>
     </div>
 
     <div class="stat pos">
@@ -312,54 +422,62 @@ tr:nth-child(even) {
         <h2>{{ neutral }}</h2>
         <p>😐 NEUTRAL</p>
     </div>
+
 </div>
 
-<h3 class="section-title">📝 Customer Reviews</h3>
+<h3 class="section-title">🌸 💬 Customer Feedback Highlights 💚 🌸</h3>
 
-<div class="table-wrap">
-<table>
-    <thead>
-        <tr>
-            <th>No.</th>
-            <th>Customer Review</th>
-            <th>Sentiment</th>
-        </tr>
-    </thead>
+<div class="feedback-list">
 
-    <tbody>
     {% for r in reviews %}
-        <tr>
-            <td>{{ r.number }}</td>
-            <td>{{ r.review }}</td>
-            <td>
-                {% if r.sentiment == 'POSITIVE' %}
-                    <span style="color:#168844;font-weight:bold;">
-                        😊 POSITIVE
-                    </span>
-                {% elif r.sentiment == 'NEGATIVE' %}
-                    <span style="color:#e32636;font-weight:bold;">
-                        😡 NEGATIVE
-                    </span>
-                {% else %}
-                    <span style="color:#b88600;font-weight:bold;">
-                        😐 NEUTRAL
-                    </span>
-                {% endif %}
-            </td>
-        </tr>
+
+    <div class="feedback-card
+        {% if r.sentiment == 'POSITIVE' %}
+            feedback-positive
+        {% elif r.sentiment == 'NEGATIVE' %}
+            feedback-negative
+        {% else %}
+            feedback-neutral
+        {% endif %}">
+
+        <div class="feedback-number">
+            📝 Feedback #{{ r.number }}
+        </div>
+
+        <div class="feedback-text">
+            {% if r.sentiment == 'POSITIVE' %}
+                <span class="feedback-emoji">💚 😍 ✨</span>
+            {% elif r.sentiment == 'NEGATIVE' %}
+                <span class="feedback-emoji">💔 😡 ⚠️</span>
+            {% else %}
+                <span class="feedback-emoji">💛 😐 🌼</span>
+            {% endif %}
+            {{ r.review }}
+        </div>
+
+        {% if r.sentiment == 'POSITIVE' %}
+            <span class="feedback-label">💚 😊 POSITIVE ✨</span>
+        {% elif r.sentiment == 'NEGATIVE' %}
+            <span class="feedback-label">💔 😡 NEGATIVE ⚠️</span>
+        {% else %}
+            <span class="feedback-label">💛 😐 NEUTRAL 🌼</span>
+        {% endif %}
+
+    </div>
+
     {% endfor %}
-    </tbody>
-</table>
+
 </div>
 
-<div style="text-align:center;margin-top:20px;">
-    <a href="/" class="btn">⬆ Upload New Dataset</a>
+<div class="back-area">
+    <a href="/" class="btn">🏠 Back to Welcome</a>
+    <a href="/upload-page" class="btn">📤 Upload New Dataset</a>
 </div>
 
 {% endif %}
 
 <div class="footer">
-    Customer Feedback Analysis | Sentiment Analysis System
+    🌸 Customer Feedback Analysis | Sentiment Analysis System 🌸
 </div>
 
 </div>
