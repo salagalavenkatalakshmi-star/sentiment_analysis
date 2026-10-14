@@ -1,186 +1,395 @@
-from flask import Flask, render_template_string, request, redirect, session
-import pandas as pd, os, re
+
+from flask import Flask, render_template_string, request, redirect, url_for
+from werkzeug.utils import secure_filename
+import pandas as pd
+import os
+import re
+import html
 
 app = Flask(__name__)
-app.secret_key = 'reviewsense123'
-os.makedirs('uploads', exist_ok=True)
+
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 DATA = {"df": None, "col": "", "file": ""}
 
 CSS = """
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{background:linear-gradient(90deg,#FF1493 0%,#FF69B4 40%,#39FF14 100%);min-height:100vh}
-.nav{background:white;padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
-.card{background:white;border-radius:28px;padding:20px;max-width:1200px;margin:15px auto;box-shadow:0 10px 30px rgba(0,0,0,0.2)}
-.btn{background:linear-gradient(90deg,#FF1493,#39FF14);color:white;padding:14px 30px;border-radius:30px;text-decoration:none;font-weight:bold;display:inline-block;border:none}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
-.stat{background:white;border-radius:12px;padding:12px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.1);border-top:4px solid #FF1493}
-.review{padding:10px;margin:5px 0;border-radius:10px;display:flex;justify-content:space-between;align-items:center;border-left:5px solid #ccc;font-size:11px;background:white}
-.badge{padding:3px 8px;border-radius:12px;color:white;font-size:9px;font-weight:bold}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-@media(max-width:700px){.grid3{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{min-height:100vh;padding:15px;background:linear-gradient(120deg,#ff1493,#ff85c1,#8be6ac,#25c976)}
+.nav{background:white;padding:16px 22px;border-radius:18px;max-width:1100px;margin:0 auto 18px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:0 5px 18px #0002}
+.brand{color:#e91e8c;font-weight:bold;font-size:clamp(15px,3vw,22px)}
+.tag{background:linear-gradient(90deg,#ff1493,#20bf6b);color:white;padding:7px 12px;border-radius:20px;font-size:10px;white-space:nowrap}
+.card{max-width:1100px;margin:auto;background:rgba(255,255,255,.97);padding:28px;border-radius:25px;box-shadow:0 12px 35px #0002}
+h1{text-align:center;color:#e91e8c;font-size:clamp(25px,5vw,38px);margin:12px 0}
+.subtitle{text-align:center;color:#555;line-height:1.7;margin-bottom:20px}
+.upload{background:#fff0f7;border:2px dashed #ff1493;border-radius:18px;padding:28px 15px;text-align:center;margin:22px 0}
+input[type=file]{width:100%;max-width:400px;padding:12px;background:white;border:1px solid #ddd;border-radius:10px;margin:18px 0}
+.btn{display:inline-block;background:linear-gradient(90deg,#ff1493,#20bf6b);color:white;padding:13px 22px;border:0;border-radius:25px;font-weight:bold;text-decoration:none;cursor:pointer;margin:5px}
+.success{background:#e8f8ee;color:#16763b;padding:15px;border-radius:12px;margin:18px 0;overflow-wrap:anywhere}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0}
+.stat{padding:20px 8px;border-radius:15px;text-align:center;background:white;box-shadow:0 4px 12px #0001;border-top:5px solid #ff1493}
+.stat h2{font-size:28px;margin-bottom:8px}
+.stat p{font-size:12px;font-weight:bold}
+.total{background:#f4efff;border-color:#8b5cf6}
+.pos{background:#e9fff1;border-color:#20bf6b}
+.neg{background:#fff0f1;border-color:#ff3547}
+.neu{background:#fff9e5;border-color:#ffb300}
+.section-title{color:#e91e8c;margin:25px 0 12px}
+.table-wrap{width:100%;overflow-x:auto;border-radius:12px}
+table{width:100%;min-width:440px;border-collapse:collapse;background:white}
+th,td{border:1px solid #eee;padding:12px;text-align:left;overflow-wrap:anywhere}
+th{background:linear-gradient(90deg,#ff1493,#20bf6b);color:white}
+tr:nth-child(even){background:#fff5fa}
+.footer{text-align:center;font-size:12px;color:#777;margin-top:25px}
+.center{text-align:center}
+@media(max-width:650px){
+body{padding:9px}.card{padding:18px 12px;border-radius:18px}
+.nav{padding:13px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.stat h2{font-size:23px}
+}
 </style>
 """
 
-def simple_sentiment(t):
-    t=str(t).lower()
-    pos=['love','great','excellent','amazing','good','best','awesome','perfect','nice','wonderful','happy','super','fantastic','outstanding','satisfied']
-    neg=['bad','worst','terrible','awful','hate','poor','horrible','disappoint','waste','boring','pathetic','useless','broke','not worth']
-    p=sum(1 for w in pos if w in t); n=sum(1 for w in neg if w in t)
-    return 1 if p>n else -1 if n>p else 0
+def find_review_column(df):
+    keys = ["review", "feedback", "comment", "text"]
+    for col in df.columns:
+        if any(k in str(col).lower() for k in keys):
+            return col
+    return df.columns[0]
 
-@app.route('/')
-def home():
-    return render_template_string(CSS + """
-    <div class="nav"><b>🌸 ReviewSense</b><span style="background:linear-gradient(90deg,#FF1493,#39FF14);color:white;padding:5px 12px;border-radius:15px;font-size:10px">AI POWERED</span></div>
-    <div class="card" style="text-align:center">
-        <h1 style="font-size:40px;color:#FF1493">WELCOME</h1>
-        <p><b>ReviewSense - Sentiment Analysis</b></p>
-        <p style="font-size:12px;color:#666;margin:8px">Upload Dataset & Analyze</p>
-        <a href="/upload-page" class="btn" style="margin-top:12px">✨ Launch Analysis →</a>
-        <div style="background:#f8f8f8;border-radius:12px;padding:15px;margin-top:15px;text-align:left">
-            <h3 style="text-align:center;color:#FF1493;font-size:14px">📊 Project Overview</h3>
-            <div class="grid3" style="margin-top:10px">
-                <div style="background:white;padding:10px;border-radius:8px;border-left:3px solid #00C853;font-size:10px"><b>💚 Review Analysis</b><br>- 1000 Reviews<br>- Positive Green<br>- Negative Red<br>- Neutral Gold</div>
-                <div style="background:white;padding:10px;border-radius:8px;border-left:3px solid #2979FF;font-size:10px"><b>📊 Percentage</b><br>- TOTAL 1000<br>- POSITIVE %<br>- NEGATIVE %<br>- NEUTRAL %</div>
-                <div style="background:white;padding:10px;border-radius:8px;border-left:3px solid #FF1493;font-size:10px"><b>⭐ Rating</b><br>- AVERAGE 4.2<br>- MAX 5.0<br>- MIN 1.0<br>- AVG WORDS</div>
-            </div>
+def simple_sentiment(text):
+    t = str(text).lower()
+    t = re.sub(r"[^a-z0-9\s']", " ", t)
+    words = t.split()
+
+    positive = {
+        "love", "great", "excellent", "amazing", "good",
+        "best", "awesome", "perfect", "nice", "wonderful",
+        "happy", "super", "fantastic", "outstanding",
+        "satisfied", "recommend", "beautiful", "useful",
+        "comfortable", "fast", "helpful"
+    }
+    negative = {
+        "bad", "worst", "terrible", "awful", "hate",
+        "poor", "horrible", "disappoint", "disappointed",
+        "waste", "boring", "pathetic", "useless",
+        "broken", "slow", "expensive", "problem",
+        "defective", "dirty", "damage", "damaged"
+    }
+    negations = {
+        "not", "never", "no", "hardly", "isn't",
+        "wasn't", "don't", "doesn't", "didn't"
+    }
+
+    p = 0
+    n = 0
+
+    for i, word in enumerate(words):
+        # Check for negation near the sentiment word
+        start = max(0, i - 3)
+        negated = any(w in negations for w in words[start:i])
+
+        if word in positive:
+            if negated:
+                n += 1
+            else:
+                p += 1
+
+        if word in negative:
+            if negated:
+                p += 1
+            else:
+                n += 1
+
+    if p > n:
+        return "POSITIVE"
+    if n > p:
+        return "NEGATIVE"
+    return "NEUTRAL"
+
+
+def page(content, **kwargs):
+    return render_template_string(
+        CSS + """
+        <div class="nav">
+            <span class="brand">🌸 Customer Feedback Analysis</span>
+            <span class="tag">AI POWERED</span>
         </div>
-    </div>""")
+        """ + content,
+        **kwargs
+    )
 
-@app.route('/upload-page')
-def upload_page():
-    return render_template_string(CSS + """
-    <div class="nav"><b>🌸 ReviewSense</b><a href="/" style="text-decoration:none;font-size:12px">← Home</a></div>
-    <div class="card" style="text-align:center">
-        <h2>📤 Upload Dataset</h2>
-        <p style="font-size:11px;color:#666">CSV, Excel, PDF Support - 1000 Reviews</p>
-        <form method="POST" action="/upload" enctype="multipart/form-data" style="margin-top:15px;border:2px dashed #FF1493;padding:20px;border-radius:12px;background:#fff0f5">
-            <input type="file" name="file" accept=".csv,.xlsx,.xls,.pdf" required><br><br>
-            <button class="btn" type="submit">Upload Dataset</button>
-        </form>
-    </div>""")
 
-@app.route('/upload', methods=['POST'])
+@app.route("/")
+def home():
+    return page("""
+    <div class="card">
+        <h1>Customer Feedback Analysis</h1>
+        <p class="subtitle">
+            <b>Welcome to Customer Feedback Analysis System</b><br>
+            Understand Customer Opinions Through Sentiment Analysis
+        </p>
+
+        <div class="upload">
+            <h3 style="color:#e91e8c;margin-bottom:12px">
+                📂 Upload Your Dataset
+            </h3>
+            <p style="color:#666">
+                Select a CSV or Excel dataset containing customer reviews.
+                Text-based PDFs are also supported.
+            </p>
+
+            <form action="/upload" method="post"
+                  enctype="multipart/form-data">
+                <input type="file" name="file"
+                       accept=".csv,.xlsx,.xls,.pdf" required>
+                <br>
+                <button class="btn" type="submit">
+                    📤 Upload Dataset
+                </button>
+            </form>
+        </div>
+
+        <p class="subtitle">
+            😊 Positive &nbsp; | &nbsp; 😡 Negative
+            &nbsp; | &nbsp; 😐 Neutral
+        </p>
+        <div class="footer">
+            Customer Feedback Analysis | Sentiment Analysis System
+        </div>
+    </div>
+    """)
+
+
+@app.route("/upload", methods=["POST"])
 def upload():
     try:
-        f=request.files.get('file')
-        if not f: return redirect('/upload-page')
-        path=os.path.join('uploads', f.filename)
-        f.save(path)
-        df=None
+        f = request.files.get("file")
 
-        if path.lower().endswith('.pdf'):
+        if not f or not f.filename:
+            return "Please select a dataset.", 400
+
+        filename = secure_filename(f.filename)
+
+        if not filename:
+            return "Invalid filename.", 400
+
+        ext = os.path.splitext(filename)[1].lower()
+
+        if ext not in {".csv", ".xlsx", ".xls", ".pdf"}:
+            return "Unsupported file type. Upload CSV, Excel or PDF.", 400
+
+        path = os.path.join(UPLOAD_FOLDER, filename)
+        f.save(path)
+
+        if ext == ".csv":
+            try:
+                df = pd.read_csv(
+                    path, encoding="utf-8-sig",
+                    on_bad_lines="skip"
+                )
+            except (UnicodeDecodeError, ValueError):
+                df = pd.read_csv(
+                    path, encoding="latin1",
+                    on_bad_lines="skip"
+                )
+
+        elif ext in {".xlsx", ".xls"}:
+            df = pd.read_excel(path)
+
+        else:
             try:
                 import fitz
-                doc=fitz.open(path)
-                text = "\n".join([page.get_text() for page in doc])
-                # FIX FOR YOUR DATASET - REMOVE HEADER & QUOTES
-                raw_lines = text.split("\n")
-                clean_lines = []
-                for l in raw_lines:
-                    l = l.strip()
-                    if not l: continue
-                    if l.lower() == 'review': continue
-                    # remove surrounding quotes
-                    l = l.strip('"').strip("'").strip('“').strip('”')
-                    l = l.strip('"').strip("'")
-                    if len(l) > 10:
-                        clean_lines.append(l)
-                df=pd.DataFrame({'review': clean_lines})
-                # Save backup for analyze page persistence
-                df.to_csv('/tmp/current_data.csv', index=False)
-            except Exception as e:
+                doc = fitz.open(path)
+                text = "\n".join(p.get_text() for p in doc)
+                doc.close()
+            except ImportError:
                 try:
-                    import PyPDF2
-                    reader=PyPDF2.PdfReader(path)
-                    text="\n".join([p.extract_text() or "" for p in reader.pages])
-                    lines=[l.strip().strip('"').strip("'") for l in text.split("\n")]
-                    lines=[l for l in lines if l and l.lower()!='review' and len(l)>10]
-                    df=pd.DataFrame({'review': lines})
-                    df.to_csv('/tmp/current_data.csv', index=False)
-                except Exception as e2:
-                    return f"<h3>PDF Error: {e2}</h3><a href='/upload-page'>Try again</a>"
-        elif path.lower().endswith('.csv'):
-            try:
-                df=pd.read_csv(path, engine='python', encoding='utf-8', errors='ignore', on_bad_lines='skip')
-            except:
-                df=pd.read_csv(path, engine='python', encoding='latin1', on_bad_lines='skip')
-            df.to_csv('/tmp/current_data.csv', index=False)
-        else:
-            df=pd.read_excel(path)
-            df.to_csv('/tmp/current_data.csv', index=False)
+                    from pypdf import PdfReader
+                    reader = PdfReader(path)
+                    text = "\n".join(
+                        p.extract_text() or "" for p in reader.pages
+                    )
+                except ImportError:
+                    return (
+                        "PDF support requires PyMuPDF or pypdf. "
+                        "Install with: pip install pymupdf"
+                    ), 500
 
-        if df is None or len(df)==0:
-            return "<h3>Empty File!</h3><a href='/upload-page'>Try again</a>"
+            lines = [
+                line.strip().strip('"').strip("'")
+                for line in text.splitlines()
+                if line.strip()
+            ]
+            lines = [
+                line for line in lines
+                if line.lower() != "review" and len(line) > 5
+            ]
+            df = pd.DataFrame({"review": lines})
 
-        col=next((c for c in df.columns if any(x in c.lower() for x in ['review','text','comment','feedback'])), df.columns[0])
-        DATA["df"]=df.head(1000); DATA["col"]=col; DATA["file"]=f.filename
+        if df.empty or len(df.columns) == 0:
+            return """
+            <h3>Dataset is empty or could not be read.</h3>
+            <a href="/">Try again</a>
+            """, 400
 
-        return render_template_string(CSS + f"""
-        <div class="nav"><b>🌸 ReviewSense</b></div>
-        <div class="card" style="text-align:center">
-            <h1>✅ Upload Success</h1>
-            <p>{f.filename} - {len(df)} reviews found</p>
-            <p style="font-size:10px;color:green">Total: {len(df)} | Column: {col}</p><br>
-            <a href="/analyze" class="btn">Analyze Now →</a>
-        </div>""")
-    except Exception as e:
-        return f"<h3>Upload failed: {e}</h3><a href='/upload-page'>Try again</a>"
+        df.columns = [str(c).strip() for c in df.columns]
+        col = find_review_column(df)
 
-@app.route('/analyze')
-def analyze():
-    try:
-        # Load from memory or backup file (Render fix)
-        df = DATA["df"]
-        col = DATA["col"]
-        fname = DATA["file"]
-        if df is None:
-            try:
-                df = pd.read_csv('/tmp/current_data.csv', engine='python')
-                col = next((c for c in df.columns if any(x in c.lower() for x in ['review','text','comment'])), df.columns[0])
-                fname = "backup.csv"
-            except:
-                return redirect('/upload-page')
+        df = df.head(1000).copy()
+        df = df.dropna(subset=[col])
+        df[col] = df[col].astype(str).str.strip()
+        df = df[df[col].str.len() > 0].reset_index(drop=True)
 
-        pos=neg=neu=0; ratings=[]; rows=""; wc=[]
-        for i,row in df.head(1000).iterrows():
-            txt=str(row[col])[:180]
-            if len(txt)<5: continue
-            s=simple_sentiment(txt)
-            if s==1: pos+=1; c='#00C853'; b='#E8F5E9'; bd='POSITIVE'; e='😊'; r=5.0
-            elif s==-1: neg+=1; c='#FF1744'; b='#FFEBEE'; bd='NEGATIVE'; e='😡'; r=1.0
-            else: neu+=1; c='#FFB300'; b='#FFF8E1'; bd='NEUTRAL'; e='😐'; r=3.0
-            ratings.append(r); wc.append(len(txt.split()))
-            rows+=f'<div class="review" style="border-left-color:{c};background:{b}"><div style="width:68%;text-align:left"><b>{i+1}.</b> {e} {txt[:70]}...</div><div class="badge" style="background:{c}">{bd}</div></div>'
+        if df.empty:
+            return """
+            <h3>No customer reviews found in the selected file.</h3>
+            <a href="/">Upload another dataset</a>
+            """, 400
 
-        total=len(ratings); avg=round(sum(ratings)/len(ratings),1) if ratings else 4.0
-        pp=round(pos/total*100) if total else 0; nn=round(neg/total*100) if total else 0; uu=round(neu/total*100) if total else 0
-        avg_w=round(sum(wc)/len(wc)) if wc else 8
+        DATA["df"] = df
+        DATA["col"] = col
+        DATA["file"] = filename
 
-        return render_template_string(CSS + f"""
-        <div class="nav"><b>🌸 ReviewSense</b><a href="/" style="background:black;color:white;padding:5px 12px;border-radius:12px;text-decoration:none;font-size:11px">← Home</a></div>
+        return page("""
         <div class="card">
-            <h2 style="text-align:center;color:#FF1493;font-size:16px">📊 Sentiment Analysis</h2>
-            <p style="text-align:center;font-size:10px;color:#666">File: {fname} | Total Reviews: {total}</p>
-            <div class="stats">
-                <div class="stat"><h2>{total}</h2><p style="font-size:10px">TOTAL</p><span style="font-size:9px">100%</span></div>
-                <div class="stat" style="border-color:#00C853"><h2>{pos}</h2><p style="font-size:10px">POSITIVE</p><span style="font-size:9px;color:#00C853">{pp}% 😊</span></div>
-                <div class="stat" style="border-color:#FF1744"><h2>{neg}</h2><p style="font-size:10px">NEGATIVE</p><span style="font-size:9px;color:#FF1744">{nn}% 😡</span></div>
-                <div class="stat" style="border-color:#FFB300"><h2>{neu}</h2><p style="font-size:10px">NEUTRAL</p><span style="font-size:9px;color:#FFB300">{uu}% 😐</span></div>
-            </div>
-            <div class="stats">
-                <div class="stat"><h2>{avg}</h2><p style="font-size:10px">AVG RATING</p></div>
-                <div class="stat"><h2>5.0</h2><p style="font-size:10px">MAX</p></div>
-                <div class="stat"><h2>1.0</h2><p style="font-size:10px">MIN</p></div>
-                <div class="stat"><h2>{avg_w}</h2><p style="font-size:10px">AVG WORDS</p></div>
-            </div>
-            <h3 style="font-size:12px;margin:10px 0">📝 All Reviews Analysis:</h3>
-            <div>{rows}</div>
-        </div>""")
-    except Exception as e:
-        return f"<h3>Analysis Error: {e}</h3><a href='/upload-page'>Back</a>"
+            <h1>Customer Feedback Analysis</h1>
+            <p class="subtitle">✅ Dataset Uploaded Successfully!</p>
 
-if __name__=='__main__':
-    app.run(host='0.0.0.0', port=10000)
+            <div class="success">
+                <b>File:</b> {{ filename }}<br>
+                <b>Total reviews found:</b> {{ count }}<br>
+                <b>Review column:</b> {{ col }}
+            </div>
+
+            <p class="subtitle">
+                Your dataset is ready. Click below to analyze customer
+                feedback.
+            </p>
+
+            <div class="center">
+                <a href="/analyze" class="btn">📊 Analyze Feedback</a>
+                <a href="/" class="btn">Upload Another Dataset</a>
+            </div>
+        </div>
+        """, filename=filename, count=len(df), col=col)
+
+    except Exception as e:
+        return page("""
+        <div class="card">
+            <h1>Upload Error</h1>
+            <p class="subtitle">{{ error }}</p>
+            <div class="center"><a href="/" class="btn">Try Again</a></div>
+        </div>
+        """, error=str(e)), 400
+
+
+@app.route("/analyze")
+def analyze():
+    df = DATA["df"]
+    col = DATA["col"]
+    filename = DATA["file"]
+
+    if df is None:
+        return redirect(url_for("home"))
+
+    reviews = []
+    counts = {"POSITIVE": 0, "NEGATIVE": 0, "NEUTRAL": 0}
+
+    for i, value in enumerate(df[col], start=1):
+        review = str(value).strip()
+        if not review:
+            continue
+
+        sentiment = simple_sentiment(review)
+        counts[sentiment] += 1
+
+        reviews.append({
+            "number": i,
+            "review": review,
+            "sentiment": sentiment
+        })
+
+    total = len(reviews)
+
+    return page("""
+    <div class="card">
+        <h1>Customer Feedback Analysis</h1>
+        <p class="subtitle">
+            Sentiment Analysis Results of Your Uploaded Dataset<br>
+            File: {{ filename }}
+        </p>
+
+        <div class="stats">
+            <div class="stat total">
+                <h2>{{ total }}</h2><p>TOTAL REVIEWS</p>
+            </div>
+            <div class="stat pos">
+                <h2>{{ positive }}</h2><p>😊 POSITIVE</p>
+            </div>
+            <div class="stat neg">
+                <h2>{{ negative }}</h2><p>😡 NEGATIVE</p>
+            </div>
+            <div class="stat neu">
+                <h2>{{ neutral }}</h2><p>😐 NEUTRAL</p>
+            </div>
+        </div>
+
+        <h3 class="section-title">📝 Customer Reviews</h3>
+
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Customer Review</th>
+                        <th>Sentiment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in reviews %}
+                    <tr>
+                        <td>{{ r.number }}</td>
+                        <td>{{ r.review }}</td>
+                        <td>
+                            {% if r.sentiment == 'POSITIVE' %}
+                                <span style="color:#168844;font-weight:bold">
+                                    😊 POSITIVE
+                                </span>
+                            {% elif r.sentiment == 'NEGATIVE' %}
+                                <span style="color:#e32636;font-weight:bold">
+                                    😡 NEGATIVE
+                                </span>
+                            {% else %}
+                                <span style="color:#b88600;font-weight:bold">
+                                    😐 NEUTRAL
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="center" style="margin-top:22px">
+            <a href="/" class="btn">⬆ Upload New Dataset</a>
+        </div>
+
+        <div class="footer">
+            Customer Feedback Analysis | Sentiment Analysis System
+        </div>
+    </div>
+    """,
+    filename=filename,
+    total=total,
+    positive=counts["POSITIVE"],
+    negative=counts["NEGATIVE"],
+    neutral=counts["NEUTRAL"],
+    reviews=reviews)
+
+
+if __name__ == "__main__":
+    app.run(debug=True, port=10000)
