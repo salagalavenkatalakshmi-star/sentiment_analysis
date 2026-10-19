@@ -5,166 +5,198 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Customer Feedback Analysis</title>
-
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
-body{min-height:100vh;padding:16px;background:linear-gradient(120deg,#ff1493,#ff85c1,#8be6ac,#25c976);background-attachment:fixed}
-.nav{max-width:1150px;margin:0 auto 22px;padding:18px 22px;background:white;border-radius:20px;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:0 8px 25px #0002}
-.brand{color:#e91e8c;font-size:clamp(16px,3vw,23px);font-weight:bold}
-.tag{background:linear-gradient(90deg,#ff1493,#20bf6b);color:white;padding:9px 13px;border-radius:25px;font-size:12px;white-space:nowrap}
-.box{max-width:1150px;margin:auto;padding:30px;background:#fffffffa;border-radius:26px;box-shadow:0 12px 35px #0002}
-h1{text-align:center;color:#e91e8c;font-size:clamp(27px,5vw,42px);margin:12px 0 18px}
-.subtitle{text-align:center;color:#555;font-size:17px;line-height:1.9;margin-bottom:24px}
-.project{background:linear-gradient(135deg,#fff0f7,#e8fff0);padding:24px;border-radius:20px;margin:22px 0;border:1px solid #ffc3e1;line-height:1.9;color:#45404b}
-.project h2{color:#e91e8c;margin-bottom:10px}
-.upload-area{background:linear-gradient(135deg,#fff0f7,#e8fff0);border:3px dashed #ff1493;border-radius:22px;padding:30px 18px;text-align:center;margin:24px 0}
-.upload-area h2{color:#e91e8c;margin-bottom:12px}
-input[type=file]{width:100%;max-width:440px;padding:13px;background:white;border-radius:12px;margin:17px 0;border:1px solid #ddd}
-.btn{display:inline-block;background:linear-gradient(90deg,#ff1493,#20bf6b);color:white;padding:13px 21px;border:0;border-radius:28px;font-weight:bold;font-size:15px;cursor:pointer;text-decoration:none;margin:6px;transition:.2s}
-.btn:hover{transform:translateY(-3px);box-shadow:0 7px 18px #e91e8c35}
-.success{padding:18px;background:#e8f8ee;border:2px solid #20bf6b;border-radius:15px;color:#16763b;margin:20px 0;line-height:1.9;overflow-wrap:anywhere}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px;margin:28px 0}
-.stat{padding:23px 10px;border-radius:18px;text-align:center;box-shadow:0 6px 18px #0001;border-top:6px solid}
-.stat h2{font-size:32px;margin-bottom:10px}
-.stat p{font-size:12px;font-weight:bold}
-.total{background:#f4efff;border-color:#8b5cf6;color:#6941c6}
-.pos{background:#e9fff1;border-color:#20bf6b;color:#168844}
-.neg{background:#fff0f1;border-color:#ff3547;color:#e32636}
-.neu{background:#fff9e5;border-color:#ffb300;color:#a87500}
-.section-title{text-align:center;color:#e91e8c;font-size:clamp(23px,4vw,30px);margin:32px 0 22px;padding:17px 10px;background:linear-gradient(100deg,#ffe0f0,#dcffe9);border-radius:18px;border:2px solid #ff8bc5}
-.feedback-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px}
-.feedback-card{padding:25px;border-radius:20px;border:2px solid #ffd0e7;border-left:8px solid #ff1493;background:linear-gradient(135deg,#fff,#fff0f8);box-shadow:0 8px 22px #0001;overflow-wrap:anywhere;transition:.2s}
-.feedback-card:hover{transform:translateY(-4px)}
-.feedback-number{display:inline-block;background:linear-gradient(90deg,#ff1493,#20bf6b);color:white;padding:9px 14px;border-radius:25px;font-weight:bold;margin-bottom:18px}
-.feedback-text{color:#29223a;font-size:18px;line-height:1.9;font-weight:600;margin-bottom:20px;white-space:pre-wrap;overflow-wrap:anywhere}
-.feedback-emoji{font-size:23px;margin-right:6px}
-.feedback-label{display:inline-block;padding:10px 14px;border-radius:25px;font-size:14px;font-weight:bold}
-.feedback-positive{border-color:#b5edc8;border-left-color:#18a957;background:linear-gradient(135deg,#fff,#e3ffed)}
-.feedback-positive .feedback-label{background:#c8f7d8;color:#08752f}
-.feedback-negative{border-color:#ffc6cc;border-left-color:#f02d48;background:linear-gradient(135deg,#fff,#fff0f1)}
-.feedback-negative .feedback-label{background:#ffdadd;color:#c4162b}
-.feedback-neutral{border-color:#ffe3a0;border-left-color:#f0a800;background:linear-gradient(135deg,#fff,#fff8dc)}
-.feedback-neutral .feedback-label{background:#ffedb0;color:#8b6500}
-.center{text-align:center;margin:25px 0 5px}
-.footer{text-align:center;font-size:13px;color:#777;margin-top:28px;line-height:1.8}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{min-height:100vh;padding:16px;background:linear-gradient(125deg,#6d28d9,#a78bfa,#86efac,#16a34a);background-attachment:fixed;color:#30234a}
+.nav{max-width:1150px;margin:0 auto 20px;background:white;padding:16px 22px;border-radius:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 8px 25px #20104425}
+.brand{font-weight:bold;color:#6d28d9;font-size:clamp(16px,3vw,23px)}
+.tag{background:linear-gradient(90deg,#7c3aed,#16a34a);color:white;padding:10px 14px;border-radius:25px;font-size:12px}
+.box{max-width:1150px;margin:auto;background:#fffffffa;padding:30px;border-radius:28px;box-shadow:0 12px 35px #20104425}
+h1{font-size:clamp(30px,5vw,49px);color:#6d28d9;text-align:center;margin:18px 0}
+.subtitle{text-align:center;color:#5d536b;font-size:17px;line-height:1.8;margin:12px 0 25px}
+.hero{padding:32px 15px;background:linear-gradient(135deg,#f3e8ff,#ecfdf5);border:2px solid #c4b5fd;border-radius:24px;text-align:center}
+.hero h1{font-size:clamp(32px,6vw,58px);margin:15px 0;color:#6d28d9}
+.flower{font-size:34px}
+.project{padding:24px;margin:24px 0;background:linear-gradient(120deg,#f5f0ff,#eafff0);border:1px solid #c4b5fd;border-radius:20px;line-height:1.9}
+.project h2,.section-title{color:#6d28d9;margin-bottom:14px}
+.section-title{text-align:center;font-size:clamp(22px,4vw,30px);margin:28px 0 18px}
+.category-grid,.stats,.percent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin:20px 0}
+.category,.stat,.percent-card{padding:22px 13px;text-align:center;border-radius:20px;box-shadow:0 6px 18px #0000000c}
+.category h3{margin:10px 0}
+.positive{background:#dcfce7;border:2px solid #22c55e;color:#166534}
+.negative{background:#ffe4e6;border:2px solid #fb7185;color:#9f1239}
+.neutral{background:#f3e8ff;border:2px solid #a78bfa;color:#5b21b6}
+.percent-card h2{font-size:32px;margin:10px 0}
+.upload-area{padding:30px 16px;text-align:center;border:3px dashed #7c3aed;border-radius:22px;background:linear-gradient(135deg,#f5f0ff,#ecfdf5);margin:24px 0}
+.upload-area h2{color:#6d28d9;margin-bottom:14px}
+input[type=file]{display:block;width:100%;max-width:450px;margin:18px auto;padding:13px;border:1px solid #d6d3e5;background:white;border-radius:12px}
+.btn{display:inline-block;border:0;text-decoration:none;cursor:pointer;color:white;font-weight:bold;background:linear-gradient(90deg,#7c3aed,#16a34a);padding:13px 20px;border-radius:28px;margin:5px;font-size:15px}
+.btn:hover{filter:brightness(1.06);transform:translateY(-2px)}
+.top-back{margin-bottom:12px}
+.stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+.stat h2{font-size:34px;margin:12px 0}
+.stat p{font-weight:bold;font-size:13px}
+.stat.total{background:#f3e8ff;border:2px solid #a78bfa;color:#5b21b6}
+.stat.pos{background:#dcfce7;border:2px solid #22c55e;color:#166534}
+.stat.neg{background:#ffe4e6;border:2px solid #fb7185;color:#9f1239}
+.stat.neu{background:#ecfdf5;border:2px solid #34d399;color:#065f46}
+.feedback-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:18px}
+.feedback-card{padding:23px;border-radius:19px;border-left:7px solid #7c3aed;background:#faf8ff;box-shadow:0 5px 16px #0000000c;overflow-wrap:anywhere}
+.feedback-card.positive{border-left-color:#16a34a}
+.feedback-card.negative{border-left-color:#e11d48}
+.feedback-card.neutral{border-left-color:#7c3aed}
+.feedback-text{font-size:18px;line-height:1.9;font-weight:600;margin:16px 0}
+.label{display:inline-block;padding:9px 13px;border-radius:20px;font-weight:bold;font-size:13px}
+.success{background:#dcfce7;color:#166534;padding:16px;border-radius:14px;margin:18px 0;overflow-wrap:anywhere}
+.center{text-align:center;margin:22px 0 5px}
+.footer{text-align:center;color:#766c83;font-size:13px;margin-top:28px;line-height:1.8}
 @media(max-width:700px){
-body{padding:9px}.box{padding:20px 13px}.nav{padding:13px}
-.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.stat h2{font-size:25px}.feedback-list{grid-template-columns:1fr}
-.feedback-card{padding:20px}.feedback-text{font-size:17px}
+body{padding:9px}.nav{padding:13px}.box{padding:19px 13px}
+.category-grid,.percent-grid{grid-template-columns:1fr}
+.stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+.stat h2{font-size:27px}.feedback-list{grid-template-columns:1fr}
 }
 </style>
 </head>
 <body>
 
-<div class="nav">
-  <span class="brand">🌸 Customer Feedback Analysis</span>
-  <span class="tag">✨ AI POWERED</span>
-</div>
+<header class="nav">
+  <span class="brand">🌿 Customer Feedback Analysis</span>
+  <span class="tag">✨ SENTIMENT ANALYSIS</span>
+</header>
 
-<div class="box">
+<main class="box">
 
-{% if not uploaded and not analyzed %}
-<h1>🌸 Welcome to Customer Feedback Analysis 🌸</h1>
-<p class="subtitle">
-  <b>Welcome to Customer Feedback Analysis System</b><br>
-  Understand Customer Opinions Through Sentiment Analysis 💖
-</p>
-
-<div class="project">
-  <h2>📌 About Our Project</h2>
-  <p>
-    Customer Feedback Analysis is a sentiment analysis project that examines
-    customer reviews from an uploaded dataset. It classifies feedback into
-    <b>POSITIVE, NEGATIVE, and NEUTRAL</b> categories.
-    The results help users understand customer opinions, identify satisfaction
-    and complaints, and make better decisions about products and services.
-  </p>
-  <p>
-    <b>⚙️ How it works:</b> Upload a dataset → Read customer reviews →
-    Analyze sentiment → View results and feedback.
-  </p>
-  <p><b>📂 Supported files:</b> CSV, Excel and text-based PDF.</p>
-</div>
-
-<div class="upload-area">
-  <h2>💖 Upload Your Dataset 💖</h2>
-  <p>Select a file containing customer reviews to begin the analysis.</p>
-  <form action="/upload" method="post" enctype="multipart/form-data">
-    <input type="file" name="file" accept=".csv,.xlsx,.xls,.pdf" required>
-    <br>
-    <button class="btn" type="submit">📤 Upload Dataset</button>
-  </form>
-</div>
-
-<p class="subtitle">😊 Positive &nbsp; | &nbsp; 😡 Negative &nbsp; | &nbsp; 😐 Neutral</p>
-<div class="center">
+{% if page == 'home' %}
+<div class="top-back">
   <button class="btn" onclick="history.back()">⬅️ Back</button>
 </div>
 
-{% elif uploaded and not analyzed %}
-<h1>🎉 Dataset Uploaded Successfully! 🎉</h1>
-<p class="subtitle">Your dataset is ready for sentiment analysis.</p>
+<section class="hero">
+  <div class="flower">💜 🌸 💚</div>
+  <h1>WELCOME!</h1>
+  <h2 style="color:#6d28d9">Customer Feedback Analysis</h2>
+  <p class="subtitle">
+    Understand Customer Opinions Through Sentiment Analysis ✨<br>
+    Turn customer reviews into meaningful insights.
+  </p>
+  <a href="/upload-page" class="btn">🚀 Get Started</a>
+</section>
+
+<section class="project">
+  <h2>📌 About Our Project</h2>
+  <p>
+    Customer Feedback Analysis examines reviews from an uploaded dataset
+    and classifies them into POSITIVE, NEGATIVE, and NEUTRAL categories.
+    This helps users understand customer satisfaction, identify complaints,
+    and learn what customers think about products or services.
+  </p>
+  <p><b>⚙️ How it works:</b> Upload dataset → Analyze reviews → View sentiment counts and percentages.</p>
+  <p><b>📂 Supported formats:</b> CSV, Excel and text-based PDF.</p>
+</section>
+
+<h2 class="section-title">💬 Types of Customer Feedback</h2>
+<div class="category-grid">
+  <div class="category positive">
+    <div style="font-size:35px">😊</div>
+    <h3>POSITIVE</h3>
+    <p>Happy customers and good experiences.</p>
+  </div>
+  <div class="category negative">
+    <div style="font-size:35px">😟</div>
+    <h3>NEGATIVE</h3>
+    <p>Complaints and unsatisfactory experiences.</p>
+  </div>
+  <div class="category neutral">
+    <div style="font-size:35px">😐</div>
+    <h3>NEUTRAL</h3>
+    <p>Mixed, unclear or neither-positive-nor-negative feedback.</p>
+  </div>
+</div>
+
+<h2 class="section-title">📈 Feedback Percentages</h2>
+<p class="subtitle">
+  Upload your dataset to calculate the actual percentage of each sentiment.
+  Percentages are based on the reviews in your file.
+</p>
+<div class="percent-grid">
+  <div class="percent-card positive"><h3>😊 Positive</h3><h2>--%</h2><p>Dataset required</p></div>
+  <div class="percent-card negative"><h3>😟 Negative</h3><h2>--%</h2><p>Dataset required</p></div>
+  <div class="percent-card neutral"><h3>😐 Neutral</h3><h2>--%</h2><p>Dataset required</p></div>
+</div>
+
+<div class="center">
+  <a href="/upload-page" class="btn">📂 Upload Your Dataset</a>
+</div>
+
+{% elif page == 'upload' %}
+<div class="top-back">
+  <a href="/" class="btn">⬅️ Back to Welcome</a>
+</div>
+<h1>📂 Upload Dataset</h1>
+<p class="subtitle">Select a file containing customer reviews to start the analysis.</p>
+
+<div class="upload-area">
+  <h2>🌿 Choose Your Dataset 💜</h2>
+  <p>CSV, Excel (.xlsx/.xls), or text-based PDF</p>
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".csv,.xlsx,.xls,.pdf" required>
+    <button class="btn" type="submit">📤 Upload & Analyze</button>
+    <a href="/upload-page" class="btn">📁 Upload Another Dataset</a>
+  </form>
+</div>
+<p class="subtitle">😊 Positive &nbsp; | &nbsp; 😟 Negative &nbsp; | &nbsp; 😐 Neutral</p>
+
+{% elif page == 'results' %}
+<div class="top-back">
+  <a href="/upload-page" class="btn">⬅️ Back to Dataset Upload</a>
+</div>
+<h1>📊 Customer Feedback Analysis</h1>
+<p class="subtitle">Results based on your uploaded dataset 💚<br>📁 {{ filename }}</p>
 
 <div class="success">
-  <b>📁 File:</b> {{ filename }}<br>
-  <b>📝 Reviews found:</b> {{ count }}<br>
-  <b>🔎 Review column:</b> {{ col }}
+  ✅ Analysis completed! Total customer reviews: <b>{{ total }}</b>
 </div>
 
-<p class="subtitle">Click below to analyze customer feedback.</p>
-<div class="center">
-  <a href="/analyze" class="btn">📊 Analyze Feedback</a>
-  <a href="/" class="btn">⬅️ Back to Welcome</a>
-  <a href="/" class="btn">📤 Upload Another Dataset</a>
-</div>
-
-{% elif analyzed %}
-<h1>📊 Customer Feedback Analysis</h1>
-<p class="subtitle">
-  Sentiment Analysis Results of Your Uploaded Dataset 💚<br>
-  📁 File: {{ filename }}
-</p>
-
+<h2 class="section-title">📊 Feedback Counts</h2>
 <div class="stats">
-  <div class="stat total"><h2>{{ total }}</h2><p>📊 TOTAL REVIEWS</p></div>
-  <div class="stat pos"><h2>{{ positive }}</h2><p>😊 POSITIVE</p></div>
-  <div class="stat neg"><h2>{{ negative }}</h2><p>😡 NEGATIVE</p></div>
-  <div class="stat neu"><h2>{{ neutral }}</h2><p>😐 NEUTRAL</p></div>
+  <div class="stat total"><p>TOTAL FEEDBACK</p><h2>{{ total }}</h2>📝 Reviews</div>
+  <div class="stat pos"><p>😊 POSITIVE</p><h2>{{ positive }}</h2>💚 Reviews</div>
+  <div class="stat neg"><p>😟 NEGATIVE</p><h2>{{ negative }}</h2>💔 Reviews</div>
+  <div class="stat neu"><p>😐 NEUTRAL</p><h2>{{ neutral }}</h2>💜 Reviews</div>
 </div>
 
-<h2 class="section-title">🌸 💬 Customer Feedback Highlights 💚</h2>
+<h2 class="section-title">📈 Sentiment Percentages (%)</h2>
+<div class="percent-grid">
+  <div class="percent-card positive"><h3>😊 Positive</h3><h2>{{ pp }}%</h2><p>Of total feedback</p></div>
+  <div class="percent-card negative"><h3>😟 Negative</h3><h2>{{ np }}%</h2><p>Of total feedback</p></div>
+  <div class="percent-card neutral"><h3>😐 Neutral</h3><h2>{{ up }}%</h2><p>Of total feedback</p></div>
+</div>
 
+<h2 class="section-title">💬 Customer Reviews & Analysis</h2>
 <div class="feedback-list">
 {% for r in reviews %}
-  <div class="feedback-card {% if r.sentiment == 'POSITIVE' %}feedback-positive{% elif r.sentiment == 'NEGATIVE' %}feedback-negative{% else %}feedback-neutral{% endif %}">
-    <div class="feedback-number">📝 Feedback #{{ r.number }}</div>
-    <div class="feedback-text">
-      {% if r.sentiment == 'POSITIVE' %}💚 😍 ✨
-      {% elif r.sentiment == 'NEGATIVE' %}💔 😡 ⚠️
-      {% else %}💛 😐 🌼{% endif %}
-      {{ r.review }}
-    </div>
+  <article class="feedback-card {{ r.sentiment|lower }}">
+    <b>📝 Feedback #{{ r.number }}</b>
+    <div class="feedback-text">{{ r.review }}</div>
     {% if r.sentiment == 'POSITIVE' %}
-      <span class="feedback-label">💚 POSITIVE 😊</span>
+      <span class="label positive">😊 POSITIVE</span>
     {% elif r.sentiment == 'NEGATIVE' %}
-      <span class="feedback-label">💔 NEGATIVE 😡</span>
+      <span class="label negative">😟 NEGATIVE</span>
     {% else %}
-      <span class="feedback-label">💛 NEUTRAL 😐</span>
+      <span class="label neutral">😐 NEUTRAL</span>
     {% endif %}
-  </div>
+  </article>
 {% endfor %}
 </div>
 
 <div class="center">
-  <a href="/" class="btn">⬅️ Back to Welcome</a>
-  <a href="/" class="btn">📤 Upload Another Dataset</a>
+  <a href="/upload-page" class="btn">📤 Upload Another Dataset</a>
+  <a href="/" class="btn">🏠 Home</a>
 </div>
 {% endif %}
 
-<div class="footer">
-  🌸 Customer Feedback Analysis | Sentiment Analysis System 🌸
-</div>
-</div>
+<div class="footer">🌿 Customer Feedback Analysis | Sentiment Analysis System 💜</div>
+</main>
 </body>
 </html>
