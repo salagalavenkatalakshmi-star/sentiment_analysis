@@ -10,13 +10,15 @@ app = Flask(__name__)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Current uploaded dataset
 DATA = {"df": None, "col": "", "file": ""}
 
 
 def find_review_column(df):
     for col in df.columns:
-        if any(word in str(col).lower()
-               for word in ["review", "feedback", "comment", "text"]):
+        name = str(col).lower()
+        if any(word in name for word in
+               ["review", "feedback", "comment", "text"]):
             return col
     return df.columns[0]
 
@@ -73,40 +75,40 @@ def simple_sentiment(text):
 
 @app.route("/")
 def home():
-    return render_template(
-        "index.html", uploaded=False, analyzed=False
-    )
+    return render_template("index.html", page="home")
 
 
 @app.route("/upload-page")
 def upload_page():
-    return redirect(url_for("home"))
+    return render_template("index.html", page="upload")
 
 
 @app.route("/upload", methods=["POST"])
 def upload():
     try:
-        f = request.files.get("file")
+        file = request.files.get("file")
 
-        if not f or not f.filename:
-            return "Please select a dataset. <a href='/'>Go back</a>", 400
+        if not file or not file.filename:
+            return redirect(url_for("upload_page"))
 
-        filename = secure_filename(f.filename)
+        filename = secure_filename(file.filename)
         ext = os.path.splitext(filename)[1].lower()
 
         if ext not in {".csv", ".xlsx", ".xls", ".pdf"}:
-            return "Upload a CSV, Excel or PDF file. <a href='/'>Go back</a>", 400
+            return "Unsupported file. Please upload CSV, Excel or PDF."
 
         path = os.path.join(UPLOAD_FOLDER, filename)
-        f.save(path)
+        file.save(path)
 
         if ext == ".csv":
             try:
-                df = pd.read_csv(path, encoding="utf-8-sig",
-                                 on_bad_lines="skip")
+                df = pd.read_csv(
+                    path, encoding="utf-8-sig", on_bad_lines="skip"
+                )
             except (UnicodeDecodeError, ValueError):
-                df = pd.read_csv(path, encoding="latin1",
-                                 on_bad_lines="skip")
+                df = pd.read_csv(
+                    path, encoding="latin1", on_bad_lines="skip"
+                )
 
         elif ext in {".xlsx", ".xls"}:
             df = pd.read_excel(path)
@@ -115,23 +117,26 @@ def upload():
             try:
                 import fitz
                 with fitz.open(path) as doc:
-                    text = "\n".join(page.get_text() for page in doc)
+                    text = "\n".join(p.get_text() for p in doc)
             except ImportError:
                 from pypdf import PdfReader
                 reader = PdfReader(path)
                 text = "\n".join(
-                    page.extract_text() or "" for page in reader.pages
+                    p.extract_text() or "" for p in reader.pages
                 )
 
             lines = [
                 line.strip().strip('"').strip("'")
                 for line in text.splitlines()
-                if line.strip() and len(line.strip()) > 5
+                if len(line.strip()) > 5
+                and line.strip().lower() not in {
+                    "review", "customer review", "feedback"
+                }
             ]
             df = pd.DataFrame({"review": lines})
 
         if df.empty or len(df.columns) == 0:
-            return "No readable data found. <a href='/'>Try again</a>", 400
+            return "No readable data found. Please try another file."
 
         df.columns = [str(c).strip() for c in df.columns]
         col = find_review_column(df)
@@ -141,25 +146,21 @@ def upload():
         df = df[df[col] != ""].reset_index(drop=True)
 
         if df.empty:
-            return "No reviews found. <a href='/'>Upload another file</a>", 400
+            return "No customer reviews found. Please upload another dataset."
 
-        DATA.update({"df": df, "col": col, "file": filename})
+        DATA.update({
+            "df": df,
+            "col": col,
+            "file": filename
+        })
 
-        return render_template(
-            "index.html",
-            uploaded=True,
-            analyzed=False,
-            filename=filename,
-            count=len(df),
-            col=col
-        )
+        return redirect(url_for("analyze"))
 
     except Exception:
         return (
-            "Unable to read this file. Check its format and try again. "
-            "<a href='/'>Back to Welcome</a>",
-            400
-        )
+            "Could not read this file. Check the file format and try again. "
+            "<a href='/upload-page'>Back</a>"
+        ), 400
 
 
 @app.route("/analyze")
@@ -168,7 +169,7 @@ def analyze():
     col = DATA["col"]
 
     if df is None:
-        return redirect(url_for("home"))
+        return redirect(url_for("upload_page"))
 
     reviews = []
     counts = {"POSITIVE": 0, "NEGATIVE": 0, "NEUTRAL": 0}
@@ -187,18 +188,29 @@ def analyze():
             "sentiment": sentiment
         })
 
+    total = len(reviews)
+
+    def percentage(count):
+        return round(count * 100 / total, 2) if total else 0
+
     return render_template(
         "index.html",
-        uploaded=True,
-        analyzed=True,
+        page="results",
         filename=DATA["file"],
-        total=len(reviews),
+        total=total,
         positive=counts["POSITIVE"],
         negative=counts["NEGATIVE"],
         neutral=counts["NEUTRAL"],
+        pp=percentage(counts["POSITIVE"]),
+        np=percentage(counts["NEGATIVE"]),
+        up=percentage(counts["NEUTRAL"]),
         reviews=reviews
     )
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=int(os.environ.get("PORT", 10000)))
+    app.run(
+        debug=True,
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 10000))
+    )
